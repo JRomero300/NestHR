@@ -1,0 +1,13 @@
+1. Create a simple application that reads the contents of a CSV file and writes them into an in-memory database
+2. The CSV file has these columns: employeeId, firstName, lastName, email, salary
+3. employeeId and salary are numeric, the rest are strings
+4. The database has a single table using the same column names as the CSV file
+5. The input data should be validated before being written to the DB
+	- Write the application in any language you prefer
+	- You may use online resources to assist you (i.e. Documentation, Google Search, ChatGPT, Copilot)
+Sample Data:
+	employeeId,firstName,lastName,email,salary
+	1,"dog","cat","dog@email.com",100
+	2,"red","green","red@email.com",100
+	3,"fast","slow","fast@email.com",50
+	4,"top","bottom","top@email.com",50W
