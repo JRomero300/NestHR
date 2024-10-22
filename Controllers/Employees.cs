@@ -28,4 +28,3 @@ namespace NestHR.Controllers
     }
 }
 
-        // Other action methods (e.g., POST

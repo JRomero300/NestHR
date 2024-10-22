@@ -14,7 +14,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Register DataSeeder
 builder.Services.AddTransient<DataSeeder>();
-// Add this line before `app.UseRouting()`
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
