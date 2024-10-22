@@ -5,6 +5,9 @@ namespace NestHR.Model
 {
     public class Employee
     {
+
+        [Key] // This marks EmployeeId as the primary key
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // This makes EmployeeId an identity column
         public int EmployeeId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

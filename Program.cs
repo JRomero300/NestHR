@@ -1,19 +1,28 @@
-using CsvToDatabaseApi.Data;
+
 using Microsoft.EntityFrameworkCore;
 using NestHR.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
 
 // Configure DbContext with SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
 // Register DataSeeder
 builder.Services.AddTransient<DataSeeder>();
+// Add this line before `app.UseRouting()`
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder => builder.AllowAnyOrigin()
+                         .AllowAnyMethod()
+                         .AllowAnyHeader());
+});
+
 
 var app = builder.Build();
 
@@ -32,11 +41,9 @@ using (var scope = app.Services.CreateScope())
 
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Employees}/{action=Index}/{id?}");
 
 app.Run();

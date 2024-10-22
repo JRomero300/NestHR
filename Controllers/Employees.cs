@@ -1,11 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NestHR.Data;
+using NestHR.Model;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NestHR.Controllers
 {
-
-    public class EmployeesController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class EmployeesController : ControllerBase
     {
         private readonly AppDbContext _context;
 
@@ -14,11 +18,14 @@ namespace NestHR.Controllers
             _context = context;
         }
 
-        // GET: Employees
-        public async Task<IActionResult> Index()
+        // GET: api/employees
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
         {
-            var employees = await _context.Employees.ToListAsync();
-            return View(employees);
+            var employees = await _context.Employees.ToListAsync(); // Asynchronously fetch the list of employees
+            return Ok(employees); // Return the list as a 200 OK response with the employees in JSON format
         }
     }
 }
+
+        // Other action methods (e.g., POST

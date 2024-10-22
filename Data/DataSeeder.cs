@@ -1,58 +1,82 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NestHR.Data;
 using NestHR.Model;
-using System;
 using System.Globalization;
 
-namespace CsvToDatabaseApi.Data
+public class DataSeeder
 {
-    public class DataSeeder
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<DataSeeder> _logger;
+
+    public DataSeeder(IServiceProvider serviceProvider, ILogger<DataSeeder> logger)
     {
-        private readonly AppDbContext _context;
+        _serviceProvider = serviceProvider;
+        _logger = logger;
+    }
 
-        public DataSeeder(AppDbContext context)
+    public async Task SeedAsync()
+    {
+        using (var scope = _serviceProvider.CreateScope())
         {
-            _context = context;
-        }
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        public async Task SeedAsync()
-        {
-            if (!_context.Employees.Any())
+            if (!context.Employees.Any())
             {
-                // Path to the CSV file
-                var csvFilePath = Path.Combine(Directory.GetCurrentDirectory(), "Seed", "testProd.csv");
-
-                if (File.Exists(csvFilePath))
+                try
                 {
-                    // Open the CSV file and read records
-                    using (var reader = new StreamReader(csvFilePath))
+                    var csvFilePath = Path.Combine(Directory.GetCurrentDirectory(), "Seed", "testProd.csv");
+
+                    if (File.Exists(csvFilePath))
                     {
-                        // Configure CsvHelper with the correct CsvConfiguration
-                        var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
+                        using (var reader = new StreamReader(csvFilePath))
                         {
-                            // Add any necessary configuration options here
-                            MissingFieldFound = null // Prevent errors for missing fields
-                        };
+                            var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
+                            {
+                                MissingFieldFound = null,
+                                HeaderValidated = null,
+                            };
 
-                        using (var csv = new CsvReader(reader, csvConfig))
-                        {
-                            var employees = csv.GetRecords<Employee>().ToList();
-                            await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Employees ON");
+                            using (var csv = new CsvReader(reader, csvConfig))
+                            {
+                                // Register the class map
+                                csv.Context.RegisterClassMap<EmployeeMap>();
 
-                            _context.Employees.AddRange(employees);
+                                // Read records from CSV
+                                var employees = csv.GetRecords<Employee>().ToList();
 
-                            await _context.SaveChangesAsync();
+                                _logger.LogInformation("Number of employees loaded from CSV: {Count}", employees.Count);
 
-                            await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Employees OFF");
+                                if (employees.Any())
+                                {
+                                    // Add employees to the context
+                                    context.Employees.AddRange(employees);
+                                    await context.SaveChangesAsync();
+                                }
+                                else
+                                {
+                                    _logger.LogWarning("No employees were found in the CSV file.");
+                                }
+                            }
                         }
                     }
+                    else
+                    {
+                        _logger.LogError("CSV file not found at path: {CsvFilePath}", csvFilePath);
+                        throw new FileNotFoundException("CSV file not found.");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    throw new FileNotFoundException("CSV file not found.");
+                    _logger.LogError(ex, "An error occurred while seeding the database.");
+                    throw;
                 }
+            }
+            else
+            {
+                _logger.LogInformation("Employees table already contains data. Skipping seeding.");
             }
         }
     }

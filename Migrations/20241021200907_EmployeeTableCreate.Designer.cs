@@ -11,8 +11,8 @@ using NestHR.Data;
 namespace NestHR.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241018175742_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20241021200907_EmployeeTableCreate")]
+    partial class EmployeeTableCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
